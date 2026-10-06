@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tour Diary & TA Bill</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  .a4-page {
+    width: 210mm;
+    height: 297mm;
+    background: #fff;
+    padding: 8mm 6mm;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    margin: 0 auto 20px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #000;
+    line-height: 1.2;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .a4-page table { width: 100%; border-collapse: collapse; }
+  @media print {
+    body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
+    .tab, .tab-pane, .no-print, button, h1, #errorBox { display: none !important; }
+    #tab-6 { display: block !important; }
+    #printContainer > div { page-break-after: always; }
+    #printContainer > div:last-child { page-break-after: auto; }
+    .a4-page {
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 6mm 5mm !important;
+      width: 210mm !important;
+      height: 297mm !important;
+      page-break-after: always;
+    }
+  }
+  @page { size: A4; margin: 0; }
+</style>
+</head>
+<body style="margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:16px;">
+
+<div id="errorBox" style="display:none;background:#f8d7da;color:#721c24;padding:10px;margin-bottom:12px;border-radius:6px;font-size:13px;"></div>
+
+<div style="max-width:1400px;margin:0 auto;">
+
+<h1 style="text-align:center;background:linear-gradient(135deg,#1e3c72,#2a5298);color:#fff;padding:14px;border-radius:8px;font-size:19px;margin-bottom:14px;">🗂️ Tour Diary & TA Bill</h1>
+
+<div style="display:flex;gap:4px;margin-bottom:-1px;flex-wrap:wrap;">
+  <div class="tab" data-tab="0" style="padding:8px 16px;background:#2a5298;color:#fff;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(0)">📝 मासिक दैनंदिनी</div>
+  <div class="tab" data-tab="1" style="padding:8px 16px;background:#d0d7e2;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(1)">📋 Outer 1</div>
+  <div class="tab" data-tab="2" style="padding:8px 16px;background:#d0d7e2;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(2)">📋 Outer 2</div>
+  <div class="tab" data-tab="3" style="padding:8px 16px;background:#d0d7e2;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(3)">🧾 Inner 1</div>
+  <div class="tab" data-tab="4" style="padding:8px 16px;background:#d0d7e2;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(4)">🧾 Inner 2</div>
+  <div class="tab" data-tab="5" style="padding:8px 16px;background:#d0d7e2;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(5)">⚙️ Settings</div>
+  <div class="tab" data-tab="6" style="padding:8px 16px;background:#d0d7e2;border-radius:6px 6px 0 0;cursor:pointer;font-size:11px;font-weight:600;" onclick="switchTab(6)">🖨️ Print / PDF / Excel</div>
+</div>
+
+<div id="tab-0" class="tab-pane" style="background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="background:#2a5298;color:#fff;padding:8px 14px;border-radius:6px;font-size:14px;margin:0 0 12px;">Sheet 1: मासिक दैनंदिनी</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-bottom:12px;">
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Officer</label><input type="text" id="officerName" value="श्री.प्रितम तुकाराम चोरडे" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Designation</label><input type="text" id="designation" value="शाखा अभियंता" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Office</label><input type="text" id="officeName" value="उजनी कालवा उपविभाग क्र.३८, माचणूर" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Headquarters</label><input type="text" id="headquarters" value="माचणूर" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Month (auto)</label><input type="text" id="month" value="मार्च" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;background:#f0f8ff;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Bill No.</label><input type="text" id="billNo" value="१" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Basic Pay (₹)</label><input type="number" id="basicPay" value="43500" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></div>
+  </div>
+  <div id="diaryContainer" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;justify-content:center;">
+    <button onclick="addRow()" style="padding:8px 18px;background:#2a5298;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">➕ Add Row</button>
+    <button onclick="loadSampleData()" style="padding:8px 18px;background:#f0ad4e;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">📥 Load Sample</button>
+    <button onclick="clearAll()" style="padding:8px 18px;background:#dc3545;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">🗑️ Clear</button>
+    <button onclick="updateAll()" style="padding:8px 18px;background:#28a745;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">🔄 Refresh</button>
+  </div>
+  <div style="background:#e8f4fd;border-left:4px solid #2a5298;padding:10px;border-radius:4px;font-size:11px;">
+    <b>Auto-adjust:</b> Font & row size scale with entry count. 31 entries fit perfectly on A4. Inner 1 and Inner 2 rows stay aligned.
+  </div>
+</div>
+
+<div id="tab-1" class="tab-pane" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="background:#2a5298;color:#fff;padding:8px 14px;border-radius:6px;font-size:14px;margin:0 0 12px;">Outer 1</h2>
+  <div id="outer1Container" style="overflow-x:auto;"></div>
+</div>
+
+<div id="tab-2" class="tab-pane" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="background:#2a5298;color:#fff;padding:8px 14px;border-radius:6px;font-size:14px;margin:0 0 12px;">Outer 2</h2>
+  <div id="outer2Container" style="overflow-x:auto;"></div>
+</div>
+
+<div id="tab-3" class="tab-pane" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="background:#2a5298;color:#fff;padding:8px 14px;border-radius:6px;font-size:14px;margin:0 0 12px;">Inner 1 (Cols 1–12)</h2>
+  <div id="inner1Container" style="overflow-x:auto;"></div>
+</div>
+
+<div id="tab-4" class="tab-pane" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="background:#2a5298;color:#fff;padding:8px 14px;border-radius:6px;font-size:14px;margin:0 0 12px;">Inner 2 (Cols 14–21)</h2>
+  <div id="inner2Container" style="overflow-x:auto;"></div>
+</div>
+
+<div id="tab-5" class="tab-pane" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <h2 style="background:#2a5298;color:#fff;padding:8px 14px;border-radius:6px;font-size:14px;margin:0 0 12px;">⚙️ Settings</h2>
+  <h3 style="background:#e8eef7;color:#1e3c72;padding:6px 10px;border-radius:4px;font-size:13px;border-left:3px solid #2a5298;">Vehicle Rate per KM</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">
+    <div><label style="font-size:11px;font-weight:600;color:#555;">मो.सा.</label><input type="number" id="rateMosa" value="3.5" step="0.5" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">खाजगी Diesel</label><input type="number" id="rateDiesel" value="7" step="0.5" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">खाजगी Petrol</label><input type="number" id="ratePetrol" value="9" step="0.5" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">शा. वाहन</label><input type="number" id="rateGovt" value="0" step="0.5" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+  </div>
+  <h3 style="background:#e8eef7;color:#1e3c72;padding:6px 10px;border-radius:4px;font-size:13px;border-left:3px solid #2a5298;margin-top:16px;">Daily Allowance Rate</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">
+    <div><label style="font-size:11px;font-weight:600;color:#555;">मुंबई</label><input type="number" id="daMumbai" value="150" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">पुणे</label><input type="number" id="daPune" value="150" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">नाशिक</label><input type="number" id="daNashik" value="150" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">नागपूर</label><input type="number" id="daNagpur" value="150" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+    <div><label style="font-size:11px;font-weight:600;color:#555;">Other</label><input type="number" id="daOther" value="120" oninput="updateAll()" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;"></div>
+  </div>
+</div>
+
+<div id="tab-6" class="tab-pane" style="display:none;background:#fff;border-radius:0 0 8px 8px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;justify-content:center;">
+    <button onclick="printSection('diary')" style="padding:10px 20px;background:#2a5298;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">🖨️ मासिक दैनंदिनी</button>
+    <button onclick="printSection('outer1')" style="padding:10px 20px;background:#6f42c1;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">🖨️ Outer 1</button>
+    <button onclick="printSection('outer2')" style="padding:10px 20px;background:#8e44ad;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">🖨️ Outer 2</button>
+    <button onclick="printSection('inner1')" style="padding:10px 20px;background:#c0392b;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">🖨️ Inner 1</button>
+    <button onclick="printSection('inner2')" style="padding:10px 20px;background:#e74c3c;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">🖨️ Inner 2</button>
+    <button onclick="printSection('all')" style="padding:10px 20px;background:#28a745;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">🖨️ Print All</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;justify-content:center;">
+    <button onclick="downloadExcel('diary')" style="padding:10px 20px;background:#1d6f42;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">📊 Excel मासिक दैनंदिनी</button>
+    <button onclick="downloadExcel('all')" style="padding:10px 20px;background:#0f5132;color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px;">📊 Excel All</button>
+  </div>
+  <div id="printContainer"></div>
+</div>
+
+</div>
+
+<script>
+window.onerror = function(msg, url, line){
+  var box = document.getElementById('errorBox');
+  if (box) { box.style.display = 'block'; box.textContent = 'Error: ' + msg + ' (line ' + line + ')'; }
+  console.log('ERROR:', msg, 'line:', line);
+};
+
+var diaryData = [];
+var MARATHI_MONTHS = ['जानेवारी','फेब्रुवारी','मार्च','एप्रिल','मे','जून','जुलै','ऑगस्ट','सप्टेंबर','ऑक्टोबर','नोव्हेंबर','डिसेंबर'];
+
+/* Auto font scaling based on entry count */
+function autoFontSize(entryCount, options){
+  options = options || {};
+  var baseSize = options.base || 10;
+  var minSize = options.min || 5;
+  var maxRows = options.maxRows || 31;
+  if(entryCount <= maxRows) return baseSize;
+  var scale = maxRows / entryCount;
+  return Math.max(minSize, Math.round(baseSize * scale * 10) / 10);
+}
+
+function toMarathiNum(n){
+  if(n === null || n === undefined || n === '') return '';
+  var digits = ['०','१','२','३','४','५','६','७','८','९'];
+  return String(n).replace(/\d/g, function(d){ return digits[parseInt(d)]; });
+}
+function toMarathiDate(d){
+  if(!d) return '';
+  var p = d.split('-');
+  if(p.length !== 3) return d;
+  return toMarathiNum(p[2]) + '-' + toMarathiNum(p[1]) + '-' + toMarathiNum(p[0]);
+}
+function toMarathiTime(t){
+  if(!t) return '';
+  var parts = t.split(':');
+  if(parts.length < 2) return t;
+  var h = parseInt(parts[0]), m = parseInt(parts[1]);
+  var suffix = h < 12 ? 'स.' : 'सं.';
+  var hh = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+  return suffix + toMarathiNum(hh) + ':' + (m < 10 ? '०' + toMarathiNum(m) : toMarathiNum(m));
+}
+
+/* Convert number to Marathi words (Indian system) */
+function numberToMarathiWords(num) {
+  if (num === 0) return 'शून्य';
+  var a = ['','एक','दोन','तीन','चार','पाच','सहा','सात','आठ','नऊ','दहा','अकरा','बारा','तेरा','चौदा','पंधरा','सोळा','सतरा','अठरा','एकोणीस','वीस','एकवीस','बावीस','तेवीस','चोवीस','पंचवीस','सव्वीस','सत्तावीस','अठ्ठावीस','एकोणतीस','तीस','एकतीस','बत्तीस','तेहतीस','चौतीस','पस्तीस','छत्तीस','सदतीस','अडतीस','एकोणचाळीस','चाळीस','एकचाळीस','बेचाळीस','त्रेचाळीस','चव्वेचाळीस','पंचेचाळीस','सेहेचाळीस','सत्तेचाळीस','अठ्ठेचाळीस','एकोणपन्नास','पन्नास','एक्कावन्न','बावन्न','त्रेपन्न','चोपन्न','पंचावन्न','छप्पन्न','सत्तावन्न','अठ्ठावन्न','एकोणसाठ','साठ','एकसष्ट','बासष्ट','त्रेसष्ट','चौसष्ट','पासष्ट','सहासष्ट','सदसष्ट','अडसष्ट','एकोणसत्तर','सत्तर','एकहत्तर','बाहत्तर','त्र्याहत्तर','चौर्याहत्तर','पंच्याहत्तर','शहात्तर','सत्याहत्तर','अठ्ठ्याहत्तर','एकोणऐंशी','ऐंशी','एक्याऐंशी','ब्याऐंशी','त्र्याऐंशी','चौऱ्याऐंशी','पंच्याऐंशी','शहाऐंशी','सत्त्याऐंशी','अठ्ठ्याऐंशी','एकोणनव्वद','नव्वद','एक्याण्णव','ब्याण्णव','त्र्याण्णव','चौऱ्याण्णव','पंच्याण्णव','शहाण्णव','सत्त्याण्णव','अठ्ठ्याण्णव','एकोणनव्वद'];
+  var b = ['','हजार','लाख','कोटी'];
+  
+  function twoDigits(n) {
+    if (n < 10) return a[n];
+    if (n < 100) return a[n];
+    return '';
+  }
+  
+  function convert(n) {
+    if (n === 0) return '';
+    var str = '';
+    var crore = Math.floor(n / 10000000);
+    var lakh = Math.floor((n % 10000000) / 100000);
+    var thousand = Math.floor((n % 100000) / 1000);
+    var hundred = Math.floor((n % 1000) / 100);
+    var rest = n % 100;
+    
+    if (crore > 0) str += twoDigits(crore) + ' कोटी ';
+    if (lakh > 0) str += twoDigits(lakh) + ' लाख ';
+    if (thousand > 0) str += twoDigits(thousand) + ' हजार ';
+    if (hundred > 0) str += a[hundred] + 'शे ';
+    if (rest > 0) str += twoDigits(rest);
+    
+    return str.trim();
+  }
+  
+  var words = convert(num);
+  return words + ' फक्त';
+}
+
+function detectMonth(){
+  var monthCount = {};
+  diaryData.forEach(function(r){
+    if(r.date && r.date.length >= 7){
+      var m = r.date.substring(0, 7);
+      monthCount[m] = (monthCount[m] || 0) + 1;
+    }
+  });
+  var topMonth = null, topCount = 0;
+  for(var m in monthCount){ if(monthCount[m] > topCount){ topMonth = m; topCount = monthCount[m]; } }
+  if(topMonth){
+    var parts = topMonth.split('-');
+    var monthIdx = parseInt(parts[1]) - 1;
+    if(monthIdx >= 0 && monthIdx < 12){
+      var el = document.getElementById('month');
+      if(el) el.value = MARATHI_MONTHS[monthIdx];
+    }
+  }
+}
+
+function loadSampleData(){
+  diaryData = [
+    {date:'2021-03-01',from:'09:30',to:'17:30',fromPlace:'कळंब',toPlace:'भाटसांगवी,आडसुळवाडी व परत',vehicleType:'mosa',location:'other',km:52,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-02',from:'09:30',to:'17:30',fromPlace:'कळंब',toPlace:'उस्मानाबाद व परत',vehicleType:'mosa',location:'other',km:110,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-03',from:'09:30',to:'17:30',fromPlace:'कळंब',toPlace:'कोठाळवाडी व परत',vehicleType:'mosa',location:'other',km:20,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-04',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'गोपाळवाडी व परत',vehicleType:'mosa',location:'other',km:50,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-05',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-06',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-07',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-08',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-09',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'ढोकी व परत',vehicleType:'mosa',location:'other',km:70,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-10',from:'09:30',to:'17:30',fromPlace:'कळंब',toPlace:'कोठाळवाडी व परत',vehicleType:'mosa',location:'other',km:20,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-11',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'mosa',location:'other',km:160,work:'सुट्टी'},
+    {date:'2021-03-12',from:'09:30',to:'17:30',fromPlace:'कळंब',toPlace:'उस्मानाबाद व परत',vehicleType:'mosa',location:'other',km:110,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-13',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-14',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-15',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'कोल्हेगाव व परत',vehicleType:'mosa',location:'other',km:80,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-16',from:'09:30',to:'17:30',fromPlace:'कळंब',toPlace:'भाटसांगवी,आडसुळवाडी व परत',vehicleType:'mosa',location:'other',km:52,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-17',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-18',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'ढोकी व परत',vehicleType:'mosa',location:'other',km:70,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-19',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-20',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'गोपाळवाडी व परत',vehicleType:'mosa',location:'other',km:50,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-21',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-22',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-23',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'उस्मानाबाद व परत',vehicleType:'mosa',location:'other',km:110,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-24',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-25',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'},
+    {date:'2021-03-26',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'ढोकी व परत',vehicleType:'mosa',location:'other',km:50,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-27',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-28',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-29',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'सुट्टी'},
+    {date:'2021-03-30',from:'09:30',to:'16:30',fromPlace:'कळंब',toPlace:'कोल्हेगाव व परत',vehicleType:'mosa',location:'other',km:80,work:'क्षेत्रीय पाहणी'},
+    {date:'2021-03-31',from:'',to:'',fromPlace:'कळंब',toPlace:'मुख्यालयात',vehicleType:'',location:'other',km:0,work:'कार्यालयीन कामकाज'}
+  ];
+  updateAll();
+}
+
+function clearAll(){ diaryData = []; updateAll(); }
+function addRow(){ diaryData.push({date:'',from:'',to:'',fromPlace:'कळंब',toPlace:'',vehicleType:'',location:'other',km:0,work:''}); updateAll(); }
+function removeRow(i){ diaryData.splice(i, 1); updateAll(); }
+function updateRow(i, field, val){
+  if(!diaryData[i]) return;
+  if(field === 'km') diaryData[i][field] = parseFloat(val) || 0;
+  else diaryData[i][field] = val;
+  detectMonth();
+}
+function updateLocation(i, val){
+  if(!diaryData[i]) return;
+  diaryData[i].location = val;
+  updateAll();
+}
+
+function getVal(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function num(id){ var el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; }
+
+function vehicleRate(v){
+  var m = { mosa: num('rateMosa'), diesel: num('rateDiesel'), petrol: num('ratePetrol'), govt: num('rateGovt') };
+  return m[v] || 0;
+}
+function daRateFor(l){
+  var m = { mumbai: num('daMumbai'), pune: num('daPune'), nashik: num('daNashik'), nagpur: num('daNagpur'), other: num('daOther') };
+  return m[l] || num('daOther');
+}
+function vehicleLabel(v){
+  var m = { mosa: 'मो.सा.', diesel: 'खाजगी (Diesel)', petrol: 'खाजगी (Petrol)', govt: 'शा. वाहन' };
+  return m[v] || '';
+}
+function getHours(from,to){
+  if(!from||!to) return 0;
+  function parse(s){ var m = s.match(/(\d+):(\d+)/); if(!m) return 0; return parseInt(m[1]) + parseInt(m[2])/60; }
+  var h1 = parse(from), h2 = parse(to);
+  if(h2 < h1) h2 += 24;
+  return h2 - h1;
+}
+function isTravelDay(r){
+  if(!r.from || !r.to) return false;
+  if((r.toPlace || '').indexOf('मुख्यालय') !== -1) return false;
+  if((r.work || '').indexOf('सुट्टी') !== -1) return false;
+  return getHours(r.from, r.to) > 0;
+}
+function calculateDA(r, daRate){
+  if(!isTravelDay(r)) return 0;
+  var hours = getHours(r.from, r.to);
+  if(hours > 12) return daRate;
+  return daRate * 0.5;
+}
+
+function computeTotals(){
+  var totalCol10 = 0, totalCol15 = 0, totalCol18 = 0, totalCol19 = 0;
+
+  var allRows = diaryData.map(function(r, idx){
+    var km = r.km || 0;
+    var vRate = vehicleRate(r.vehicleType || 'mosa');
+    var daRate = daRateFor(r.location || 'other');
+    var hours = getHours(r.from, r.to);
+
+    var col10 = km * vRate;
+    var col14 = daRate;
+    var col15 = calculateDA(r, daRate);
+    var col18 = 0;
+    var col19 = col10 + col15 + col18;
+
+    totalCol10 += col10;
+    totalCol15 += col15;
+    totalCol18 += col18;
+    totalCol19 += col19;
+
+    return {
+      idx: idx+1,
+      date: r.date, from: r.from, to: r.to,
+      fromPlace: r.fromPlace, toPlace: r.toPlace,
+      vehicleType: r.vehicleType, location: r.location,
+      km: km, work: r.work,
+      vRate: vRate, daRate: daRate,
+      col10: col10, col14: col14, col15: col15,
+      col18: col18, col19: col19,
+      hours: hours.toFixed(1),
+      isTravel: isTravelDay(r),
+      isFullDay: hours > 12 && isTravelDay(r)
+    };
+  });
+
+  var travelRows = allRows.filter(function(r){ return r.isTravel; });
+
+  return {
+    rows: travelRows,
+    allRows: allRows,
+    totalCol10: totalCol10,
+    totalCol15: totalCol15,
+    totalCol18: totalCol18,
+    totalCol19: totalCol19,
+    grandTotal: totalCol19,
+    entryCount: diaryData.length
+  };
+}
+
+/* Editable diary */
+function renderDiaryEditable(){
+  var rowsHtml = '';
+  diaryData.forEach(function(r, i){
+    var vt = r.vehicleType || '';
+    var isTravel = isTravelDay(r);
+    var rowBg = isTravel ? '#fff' : '#f5f5f5';
+    rowsHtml += '<tr style="background:'+rowBg+';">';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><input type="date" value="'+(r.date||'')+'" onchange="updateRow('+i+',\'date\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;"></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><input type="time" value="'+(r.from||'')+'" onchange="updateRow('+i+',\'from\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;"></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><input type="time" value="'+(r.to||'')+'" onchange="updateRow('+i+',\'to\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;"></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><input type="text" value="'+(r.fromPlace||'')+'" onchange="updateRow('+i+',\'fromPlace\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;"></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><textarea rows="2" onchange="updateRow('+i+',\'toPlace\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;resize:none;font-family:inherit;word-break:break-word;">'+(r.toPlace||'')+'</textarea></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><select onchange="updateRow('+i+',\'vehicleType\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;">';
+    rowsHtml += '<option value="mosa" '+(vt==='mosa'?'selected':'')+'>मो.सा.</option>';
+    rowsHtml += '<option value="diesel" '+(vt==='diesel'?'selected':'')+'>खाजगी (D)</option>';
+    rowsHtml += '<option value="petrol" '+(vt==='petrol'?'selected':'')+'>खाजगी (P)</option>';
+    rowsHtml += '<option value="govt" '+(vt==='govt'?'selected':'')+'>शा. वाहन</option>';
+    rowsHtml += '<option value="" '+(vt===''?'selected':'')+'>—</option>';
+    rowsHtml += '</select></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><input type="number" value="'+(r.km||0)+'" onchange="updateRow('+i+',\'km\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;"></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;"><textarea rows="2" onchange="updateRow('+i+',\'work\',this.value);updateAll()" style="width:100%;border:none;background:transparent;font-size:10px;text-align:center;resize:none;font-family:inherit;word-break:break-word;">'+(r.work||'')+'</textarea></td>';
+    rowsHtml += '<td style="border:1px solid #999;padding:2px;text-align:center;"><button onclick="removeRow('+i+')" style="background:#dc3545;color:#fff;border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:9px;">✖</button></td>';
+    rowsHtml += '</tr>';
+  });
+
+  var html = '<div style="display:flex;gap:8px;align-items:flex-start;">';
+  html += '<div style="flex:1;min-width:0;">';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;min-width:700px;">';
+  html += '<thead><tr>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:11%;">दिनांक</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:7%;">पासून</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:7%;">पर्यंत</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:7%;">कोठून</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:15%;">कोठे</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:12%;">वाहन</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:6%;">कि.मी.</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:20%;">कामाचा तपशिल</th>';
+  html += '<th style="border:1px solid #999;padding:3px;background:#e8eef7;width:5%;">✖</th>';
+  html += '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+  html += '</div>';
+  html += renderNonPrintPanel();
+  html += '</div>';
+  return html;
+}
+
+function renderNonPrintPanel(){
+  if(!diaryData.length) return '';
+  var html = '<div class="no-print" style="width:90px;background:#fff8e1;border:1px dashed #f0ad4e;border-radius:4px;padding:4px;font-size:8px;flex-shrink:0;">';
+  html += '<div style="font-size:8px;font-weight:700;color:#8b6914;margin-bottom:4px;text-align:center;">⚙️ ठिकाण</div>';
+  diaryData.forEach(function(r, i){
+    var loc = r.location || 'other';
+    html += '<div style="padding:2px 0;border-bottom:1px dotted #ccc;">';
+    html += '<div style="font-size:7px;color:#666;">'+(i+1)+'</div>';
+    html += '<select onchange="updateLocation('+i+',this.value)" style="font-size:7px;padding:1px;border:1px solid #ccc;border-radius:2px;width:100%;">';
+    html += '<option value="mumbai" '+(loc==='mumbai'?'selected':'')+'>मुं</option>';
+    html += '<option value="pune" '+(loc==='pune'?'selected':'')+'>पु</option>';
+    html += '<option value="nashik" '+(loc==='nashik'?'selected':'')+'>ना</option>';
+    html += '<option value="nagpur" '+(loc==='nagpur'?'selected':'')+'>नाग</option>';
+    html += '<option value="other" '+(loc==='other'?'selected':'')+'>Oth</option>';
+    html += '</select></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* PAGE 1 — मासिक दैनंदिनी */
+function renderDiaryPage(){
+  var officer = getVal('officerName');
+  var desig = getVal('designation');
+  var office = getVal('officeName');
+  var hq = getVal('headquarters');
+  var month = getVal('month');
+  var count = diaryData.length;
+
+  var baseFont = autoFontSize(count, { base: 10, min: 5, maxRows: 31 });
+  var headerFont = Math.max(9, baseFont + 1);
+  var padding = count > 31 ? '1px 2px' : (count > 25 ? '2px 3px' : '3px 4px');
+
+  var rowsHtml = '';
+  diaryData.forEach(function(r){
+    rowsHtml += '<tr>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;font-size:'+baseFont+'px;">' + (r.date ? toMarathiDate(r.date) : '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;font-size:'+baseFont+'px;">' + (r.from ? toMarathiTime(r.from) : '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;font-size:'+baseFont+'px;">' + (r.to ? toMarathiTime(r.to) : '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;font-size:'+baseFont+'px;">' + (r.fromPlace || '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:left;font-size:'+baseFont+'px;word-break:break-word;">' + (r.toPlace || '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;font-size:'+baseFont+'px;">' + (r.vehicleType ? vehicleLabel(r.vehicleType) : '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;font-size:'+baseFont+'px;">' + (r.km ? toMarathiNum(r.km) : '') + '</td>';
+    rowsHtml += '<td style="border:1px solid #000;padding:'+padding+';text-align:left;font-size:'+baseFont+'px;word-break:break-word;">' + (r.work || '') + '</td>';
+    rowsHtml += '</tr>';
+  });
+
+  var html = '<div class="a4-page">';
+  html += '<div style="text-align:center;font-size:'+(headerFont+2)+'px;font-weight:700;margin-bottom:3px;">मासिक दैनंदिनी</div>';
+  html += '<div style="text-align:center;font-size:'+(headerFont+1)+'px;font-weight:700;margin-bottom:6px;">' + officer + ', ' + desig + ' ' + office + '</div>';
+  html += '<div style="display:flex;justify-content:space-between;border-top:2px solid #000;border-bottom:1px solid #000;padding:2px 0;font-size:'+(headerFont+1)+'px;font-weight:700;">';
+  html += '<div>मुख्यालय-' + hq + '</div>';
+  html += '<div>माहे- ' + month + '</div>';
+  html += '</div>';
+  html += '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:'+baseFont+'px;">';
+  html += '<thead><tr>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:'+padding+';font-weight:700;width:11%;font-size:'+headerFont+'px;">दिनांक</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:'+padding+';font-weight:700;width:15%;font-size:'+headerFont+'px;">वेळ</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:'+padding+';font-weight:700;width:28%;font-size:'+headerFont+'px;">भेट दिल्याचे ठिकाण</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:'+padding+';font-weight:700;width:11%;font-size:'+headerFont+'px;">गाडी क्रमांक</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:'+padding+';font-weight:700;width:7%;font-size:'+headerFont+'px;">कि. मी.</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:'+padding+';font-weight:700;width:28%;font-size:'+headerFont+'px;">कामाचा तपशिल</th>';
+  html += '</tr><tr>';
+  html += '<th style="border:1px solid #000;padding:'+padding+';font-weight:700;font-size:'+headerFont+'px;">पासून</th>';
+  html += '<th style="border:1px solid #000;padding:'+padding+';font-weight:700;font-size:'+headerFont+'px;">पर्यंत</th>';
+  html += '<th style="border:1px solid #000;padding:'+padding+';font-weight:700;width:10%;font-size:'+headerFont+'px;">कोठून</th>';
+  html += '<th style="border:1px solid #000;padding:'+padding+';font-weight:700;width:18%;font-size:'+headerFont+'px;">कोठे</th>';
+  html += '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+  html += '<div style="font-size:'+(headerFont-1)+'px;margin-top:8px;line-height:1.5;">प्रति, मा.सहायक कार्यकारी अभियंता, उजनी कालवा उपविभाग क्र.३८, माचणूर यांना माहितीसाठी व पुढील योग्य त्या कार्यवाहीसाठी सविनय सादर.</div>';
+  html += '<div style="text-align:right;font-size:'+headerFont+'px;margin-top:14px;">आपला विश्वासू,<br><br><b>' + officer + '(' + desig + ')</b></div>';
+  html += '</div>';
+  return html;
+}
+
+/* PAGE 2 — OUTER 1 */
+function renderOuter1(){
+  var t = computeTotals();
+  var officer = getVal('officerName');
+  var desig = getVal('designation');
+  var office = getVal('officeName');
+  var month = getVal('month');
+  var billNo = getVal('billNo');
+  var grand = t.grandTotal;
+
+  var html = '<div class="a4-page">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;"><div style="text-decoration:underline;">' + officer + '</div><div style="font-size:10px;text-align:right;">सर्वसा.२४-म.नमुना (सुधारीत)<br>Gen. 24-M-Outer (Revised)</div></div>';
+  html += '<div style="font-size:11px;margin-bottom:14px;">' + desig + '</div>';
+  html += '<div style="text-align:center;font-size:11px;">म.को.नि. नमुना १८<br>(नियम २४९ आणि २७२)</div>';
+  html += '<div style="text-align:center;font-size:14px;margin:8px 0 14px;"><b>प्रवासभत्ता देयक</b></div>';
+  html += '<table style="border:none;margin-bottom:10px;width:100%;"><tr>';
+  html += '<td style="border:none;text-align:left;font-size:11px;">कार्यालयाचे नांव- &nbsp; <b>' + office + '</b></td>';
+  html += '<td style="border:none;text-align:right;font-size:11px;">देयक क्र. <b>' + billNo + '</b><br>माहे <b>' + month + '</b></td>';
+  html += '</tr></table>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">';
+  html += '<tr><td colspan="2" style="border:1px solid #000;padding:6px;text-align:center;width:50%;font-weight:700;">कोषागारसाठी</td><td colspan="2" style="border:1px solid #000;padding:6px;text-align:center;width:50%;font-weight:700;">HEAD OF ACCOUNT</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">ओळखचिन्ह क्रमांक</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">Administrative Department</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">Token No.</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">Demand No.</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">दिनांक</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">Major head</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">प्रमाणक क्रमांक</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">Minor head</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">Voucher No.</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">Sub-head</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">दिनांक</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">Detailed head</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td><td style="border:1px solid #000;padding:6px;">(Object of expenditure)</td><td style="border:1px solid #000;padding:6px;">&nbsp;</td></tr>';
+  html += '</table>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px;">';
+  html += '<thead><tr><th rowspan="3" style="border:1px solid #000;padding:6px;text-align:center;width:55%;">देवकाचा स्तंभ क्रमांक</th><th colspan="2" style="border:1px solid #000;padding:6px;text-align:center;width:45%;">रक्कम</th></tr>';
+  html += '<tr><th colspan="2" style="border:1px solid #000;padding:4px;text-align:center;font-size:9px;">* योजनांतगत/योजनेतर<br>Plan/Non plan</th></tr>';
+  html += '<tr><th style="border:1px solid #000;padding:3px;width:22%;">रुपये</th><th style="border:1px solid #000;padding:3px;width:23%;">पैसे</th></tr></thead><tbody>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">विमान/ रेल्वे/ आगबोट/ बस भाडे</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">10</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">किलोमीटर सडक भत्ता</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">10</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">सर्वसाधारण दराने दैनिक भत्ता</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">15</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">विशेष दर फरक</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">18</td><td style="border:1px solid #000;padding:7px 6px;text-align:center;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;text-align:right;">एकूण रक्कम रुपये</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">वजाती :-</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">(१) प्रवास भत्ता अग्रिम</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">(२) स्थायी प्रवास भत्ता</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">(३) वाहन भत्ता</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;text-align:right;">एकूण वजाती रुपये</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:7px 6px;">शेवटच्या पानावर निव्वळ देय रकम</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:7px 6px;">&nbsp;</td></tr>';
+  html += '</tbody></table>';
+  html += '<div style="font-size:10px;margin-top:16px;line-height:1.7;"><b>टिप-</b> (१) लेखाशिर्ष व सर्व आकडे इंग्रजीत लिहावे.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(२) संगणक चिटी स्वतंत्र छापली आहे ती जोडावी.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="border:1px solid #000;padding:2px 8px;">* अनावश्यक ते खोडावे.</span></div>';
+  html += '</div>';
+  return html;
+}
+
+/* PAGE 3 — OUTER 2 */
+function renderOuter2(){
+  var t = computeTotals();
+  var grand = t.grandTotal;
+
+  var html = '<div class="a4-page">';
+  html += '<div style="text-align:right;font-size:10px;margin-bottom:6px;">रुपयाच्या आत</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div style="font-size:11px;"><div style="font-weight:700;">निव्वळ देय रक्कम रुपये</div><div style="font-size:10px;">(पहिल्या पानावरून पुढे आणलेली)</div></div>';
+  html += '<div style="border:2px solid #000;padding:10px 40px;text-align:center;font-size:11px;"><div style="font-weight:700;">रुपये</div><div style="border-top:1px solid #000;margin-top:8px;">&nbsp;</div><div style="border-top:1px solid #000;margin-top:8px;">&nbsp;</div></div></div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:14px;"><div>रोखीने / धनादेशाने रुपये <span style="border-bottom:1px dotted #000;display:inline-block;min-width:120px;">&nbsp;</span></div><div>अक्षरी रुपये <span style="border-bottom:1px dotted #000;display:inline-block;min-width:200px;">&nbsp;</span></div></div>';
+  html += '<div style="font-size:11px;margin-bottom:8px;">(१) रक्कम मिळाली</div>';
+  html += '<div style="font-size:10px;margin-bottom:16px;text-align:justify;">(२) प्रमाणित करण्यात येले की, (१) प्रवासभत्ता देयकात नमूद केलेली माहिती खरी आहे. (२) देयकात मागणी केलेले प्रवासभत्ता रक्कम शासन निर्णय, वित्त विभाग, क्रमांक टीओआरआयबू-२७७५ / ४५१ / एडीएम-९ दिनांक २९ नोव्हेंबर १९७५ आणि क्रमांक डीआरडी-१०७७-१५६ सीएसआयआर-५ दिनांक ११ ऑगस्ट १९७७ यानुसार व त्यानंतर वेळोवेळी अद्यावत केलेल्या शासन नियमानुसार आहे.</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:14px;"><div><b>ठिकाण-</b> ____________<br><b>दिनांक-</b> ____________</div><div style="text-align:right;">राजपत्रित अधिकारी-यांची /<br>आहरण व संवितरण अधिकारी-यांची स्वाक्षरी /<br>पदनाम ____________</div></div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:14px;">';
+  html += '<tr><td style="border:1px solid #000;padding:8px 6px;width:70%;">&nbsp;</td><td style="border:1px solid #000;padding:8px 6px;text-align:center;font-weight:700;">रुपये</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:8px 6px;">२०<span style="border-bottom:1px dotted #000;display:inline-block;min-width:25px;">&nbsp;</span> २०<span style="border-bottom:1px dotted #000;display:inline-block;min-width:25px;">&nbsp;</span> करीता अर्थसंकल्पीय तरतूद</td><td style="border:1px solid #000;padding:8px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:8px 6px;">हे देयक धरून झालेला खर्च</td><td style="border:1px solid #000;padding:8px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:8px 6px;">शिल्लक तरतूद</td><td style="border:1px solid #000;padding:8px 6px;">&nbsp;</td></tr>';
+  html += '<tr><td style="border:1px solid #000;padding:8px 6px;">&nbsp;</td><td style="border:1px solid #000;padding:8px 6px;">&nbsp;</td></tr>';
+  html += '</table>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:16px;"><div>रुपये <span style="border-bottom:1px dotted #000;display:inline-block;min-width:120px;">&nbsp;</span></div><div>(अक्षरी) रुपये <span style="border-bottom:1px dotted #000;display:inline-block;min-width:200px;">&nbsp;</span></div><div>प्रदानार्थ मंजूर</div></div>';
+  html += '<div style="font-size:10px;margin-bottom:16px;">प्रमाणित करण्यात येते की, मी सर्व प्रकारची विहित तपासणी केली आहे.</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:20px;"><div><b>ठिकाण-</b> ____________<br><b>दिनांक-</b> ____________</div><div style="text-align:right;">नियंत्रित अधिकारी-यांची स्वाक्षरी आणि पदनाम<br><b>(Controlling Officer)</b></div></div>';
+  html += '<div style="text-align:center;font-weight:700;font-size:14px;margin:24px 0 8px;">कोषागाराकरिता</div>';
+  html += '<div style="text-align:center;font-weight:700;font-size:12px;margin-bottom:18px;">FOR TREASURY</div>';
+  html += '<div style="font-size:11px;margin-bottom:24px;">Pay Rs. <span style="border-bottom:1px dotted #000;display:inline-block;min-width:180px;">&nbsp;</span> (In words) Rupees <span style="border-bottom:1px dotted #000;display:inline-block;min-width:280px;">&nbsp;</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:20px;"><div style="text-align:center;"><br><br><b>लेखापाल</b><br>Accountant</div><div style="text-align:center;"><br><br><b>कोषागार अधिकारी/ सहाय्यक अधिदान व लेखा अधिकारी</b><br>Treasury Officer/Assistant Pay and Accounts Officer<br>दिनांक<br>Date :-</div></div>';
+  html += '<div style="text-align:center;font-weight:700;font-size:13px;margin:24px 0 12px;">FOR ACCOUNTANT GENERAL\'S OFFICE</div>';
+  html += '<div style="font-size:11px;margin-bottom:8px;">Admitted for Rs. <span style="border-bottom:1px dotted #000;display:inline-block;min-width:200px;">&nbsp;</span> Objected to Rs. <span style="border-bottom:1px dotted #000;display:inline-block;min-width:200px;">&nbsp;</span></div>';
+  html += '<div style="font-size:11px;margin-bottom:20px;">Reasons for objection <span style="border-bottom:1px dotted #000;display:inline-block;min-width:450px;">&nbsp;</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:20px;"><div style="text-align:center;"><br><b>Auditor</b></div><div style="text-align:center;"><br><b>Section Officer</b></div><div style="text-align:center;"><br><b>Reviewing Officer</b></div></div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:11px;"><div>Retrenchment Slip No. <span style="border-bottom:1px dotted #000;display:inline-block;min-width:120px;">&nbsp;</span></div><div>Date :-</div></div>';
+  html += '</div>';
+  return html;
+}
+
+/* PAGE 4 — INNER 1 (Cols 1–12) with row-height alignment */
+function renderInner1(){
+  var t = computeTotals();
+  var officer = getVal('officerName');
+  var desig = getVal('designation');
+  var hq = getVal('headquarters');
+
+  if(!t.rows.length) return '<div class="a4-page" style="text-align:center;padding-top:40mm;">No travel days found.</div>';
+
+  var count = t.rows.length;
+  var baseFont = autoFontSize(count, { base: 8, min: 5, maxRows: 25 });
+  var headerFont = Math.max(7, baseFont + 0.5);
+  var rowHeight = Math.max(14, Math.round(baseFont * 1.9));
+  var padding = count > 25 ? '1px 2px' : '2px 3px';
+
+  var html = '<div class="a4-page">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:'+(baseFont+1)+'px;margin-bottom:4px;">';
+  html += '<div><b>अधिकाऱ्याचे नाव -</b> ' + officer + '</div>';
+  html += '<div style="text-align:right;">प्रवास भत्ता---<br>(नियम २४१ आणि २७२ पहा.)</div>';
+  html += '</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:'+(baseFont+1)+'px;margin-bottom:6px;">';
+  html += '<div><b>मुख्यालय -</b> ' + hq + '</div>';
+  html += '<div><b>पदनाम-</b> ' + desig + '</div>';
+  html += '</div>';
+
+  html += '<table style="width:100%;border-collapse:collapse;font-size:'+baseFont+'px;table-layout:fixed;">';
+  html += '<thead>';
+  html += '<tr>';
+  html += '<th colspan="6" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;">प्रवासाचा आणि मुक्कामाचा तपशील</th>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:6%;">प्रवासाचा मार्ग</th>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:5%;">कि.मी.</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:10%;">वाहन भाडे / सडक भत्ता</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:10%;">मुख्यालयातील अनुपस्थिती</th>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:9%;">दैनिक भत्त्यासाठी एकूण दिवस आणि तास</th>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th colspan="3" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;">गमन</th>';
+  html += '<th colspan="3" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;">आगमन</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:5%;">वर्ग</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:5%;">रक्कम</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:5%;">प्रत्यक्ष</th>';
+  html += '<th rowspan="2" style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:5%;">संलग्न तास</th>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:8%;">ठिकाण</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:9%;">दिनांक</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:6%;">वेळ</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:8%;">ठिकाण</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:9%;">दिनांक</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;width:6%;">वेळ</th>';
+  html += '</tr>';
+  html += '<tr style="font-size:'+headerFont+'px;">';
+  for(var n=1; n<=12; n++) html += '<th style="border:1px solid #000;padding:2px;background:#e8eef7;">'+toMarathiNum(n)+'</th>';
+  html += '</tr></thead><tbody>';
+
+  t.rows.forEach(function(r){
+    var daText = r.isFullDay ? 'पूर्ण दिवस' : '१/२ दिवस';
+    html += '<tr style="height:'+rowHeight+'px;">';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;word-break:break-word;height:'+rowHeight+'px;">'+r.fromPlace+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiDate(r.date)+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiTime(r.from)+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;word-break:break-word;height:'+rowHeight+'px;">'+r.toPlace+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiDate(r.date)+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiTime(r.to)+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+vehicleLabel(r.vehicleType)+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiNum(r.km)+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">००</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiNum(Math.round(r.col10))+'</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+r.hours+' तास</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+r.hours+' तास</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+daText+'</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody><tfoot><tr style="background:#fff3cd;font-weight:700;height:'+rowHeight+'px;">';
+  html += '<td colspan="7" style="border:1px solid #000;padding:'+padding+';height:'+rowHeight+'px;"></td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">'+toMarathiNum(Math.round(t.totalCol10))+'</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;height:'+rowHeight+'px;">००</td>';
+  html += '<td colspan="3" style="border:1px solid #000;padding:'+padding+';height:'+rowHeight+'px;"></td>';
+  html += '</tr></tfoot></table>';
+
+  html += '<div style="font-size:'+baseFont+'px;margin-top:8px;line-height:1.4;">';
+  html += '<b>प्रमाणपत्र</b><br>प्रमाणित करण्यात येते की,<br>';
+  html += '१. प्रवासभत्ता देयकात दाखविलेले सर्व ठिकाणामधील अंतर हे माहितीपत्रकानुसार बरोबर आहे.<br>';
+  html += '२. प्रवासासाठी तिकिटे गाडी इत्यादीने सोबत सादर केलेली नाहीत.<br>';
+  html += '३. प्रवासासाठी कोणतीही अग्रकृत रक्कम घेतलेली नाही.<br>';
+  html += '४. प्रवासात दाखविलेल्या प्रवासाबद्दलच्या रकमेची मागणी यापूर्वी केलेली नाही.<br>';
+  html += '५. कार्यक्षेत्रात खाजगी वाहनाने प्रवास केलेल्या ठिकाणी एस.टी.च्या दराने मागणी केलेली आहे.<br><br>';
+  html += '<b>टिप-</b> (१) अराजपत्रित आस्थापनेच्या बाबतीत प्रत्येक पदार्थेकाचे नांव, वेतन वगैरे तपशील स्तंभ क्र. १ ते २१ भरण्यापूर्वी वर लिहावा.<br>';
+  html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(२) हॉटेलमध्ये राहिल्याबद्दल स्तंभ क्र. १८ मधील मागणी केलेल्या दैनिक भत्त्याच्या पुष्ट्यर्थ पावत्या इत्यादीचा पुरावा जोडावा.';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
+/* PAGE 5 — INNER 2 (Cols 14–21) with row-height matching Inner 1 */
+function renderInner2(){
+  var t = computeTotals();
+  var officer = getVal('officerName');
+  var desig = getVal('designation');
+  var basicPay = num('basicPay');
+  var grand = t.grandTotal;
+
+  if(!t.rows.length) return '<div class="a4-page" style="text-align:center;padding-top:40mm;">No travel days found.</div>';
+
+  var count = t.rows.length;
+  var baseFont = autoFontSize(count, { base: 8, min: 5, maxRows: 25 });
+  var headerFont = Math.max(7, baseFont + 0.5);
+  var rowHeight = Math.max(14, Math.round(baseFont * 1.9));
+  var padding = count > 25 ? '1px 2px' : '2px 3px';
+
+  var html = '<div class="a4-page">';
+  html += '<div style="display:flex;justify-content:space-between;font-size:'+(baseFont+1)+'px;margin-bottom:6px;"><div>--- देयक</div><div style="text-align:right;">सर्वसा.२५.म.आकार (सुधारीत)<br>Gen. 25-M. Inner (Revised)</div></div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:'+(baseFont+1)+'px;margin-bottom:8px;"><div><b>वेतन / स्थायी प्रवासभत्ता / वाहन भत्ता</b><br>मूळ वेतन रु. ' + basicPay + ' /-</div><div style="text-align:right;"><b>' + getVal('month') + ' २०१९</b></div></div>';
+
+  html += '<table style="width:100%;border-collapse:collapse;font-size:'+baseFont+'px;table-layout:fixed;">';
+  html += '<thead>';
+  html += '<tr>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:8%;">१४<br>दैनिक भत्त्याचा सर्वसाधारण दर</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:12%;">१५<br>दैनिक भत्त्याची रक्कम</th>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:11%;">१६<br>मुक्कामाचा कालावधी दिवस आणि तास</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:12%;">१७<br>विशेष दर फरकाची रक्कम</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:12%;">१८<br>विशेष आणि सर्वसाधारण दैनिक भत्त्यातील फरक</th>';
+  html += '<th colspan="2" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:12%;">१९<br>स्तंभ १०, १५ व १८ ची बेरीज</th>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:11%;">२०<br>प्रवासाचा उद्देश</th>';
+  html += '<th rowspan="3" style="border:1px solid #000;padding:4px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;width:12%;">२१<br>शेरा</th>';
+  html += '</tr>';
+  html += '<tr>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">रुपये</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">पैसे</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">रुपये</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">पैसे</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">रुपये</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">पैसे</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">रुपये</th>';
+  html += '<th style="border:1px solid #000;padding:3px;background:#e8eef7;font-size:'+headerFont+'px;font-weight:700;text-align:center;">पैसे</th>';
+  html += '</tr>';
+  html += '<tr style="font-size:'+headerFont+'px;font-weight:700;background:#e8eef7;">';
+  html += '<th style="border:1px solid #000;padding:3px;">१४</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१५</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१५</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१६</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१७</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१७</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१८</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१८</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१९</th>';
+  html += '<th style="border:1px solid #000;padding:3px;">१९</th>';
+  html += '<th style="border:1px solid #000;padding:3px;"></th>';
+  html += '<th style="border:1px solid #000;padding:3px;"></th>';
+  html += '</tr>';
+  html += '</thead><tbody>';
+
+  t.rows.forEach(function(r){
+    html += '<tr style="height:'+rowHeight+'px;">';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;"><b>' + toMarathiNum(r.col14) + '</b></td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">' + toMarathiNum(Math.round(r.col15)) + '</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">००</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">' + (r.isFullDay ? 'पूर्ण दिवस' : '१/२ दिवस') + '</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">०</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">००</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">०</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">००</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;"><b>' + toMarathiNum(Math.round(r.col19)) + '</b></td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">००</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;word-break:break-word;text-align:left;height:'+rowHeight+'px;">' + r.work + '</td>';
+    html += '<td style="border:1px solid #000;padding:'+padding+';font-size:'+baseFont+'px;text-align:center;height:'+rowHeight+'px;">&nbsp;</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody><tfoot><tr style="background:#fff3cd;font-weight:700;height:'+rowHeight+'px;">';
+  html += '<td style="border:1px solid #000;padding:'+padding+';height:'+rowHeight+'px;">&nbsp;</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">' + toMarathiNum(Math.round(t.totalCol15)) + '</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">००</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';height:'+rowHeight+'px;">&nbsp;</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">०</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">००</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">०</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">००</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">' + toMarathiNum(Math.round(grand)) + '</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';text-align:center;height:'+rowHeight+'px;">००</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';height:'+rowHeight+'px;">&nbsp;</td>';
+  html += '<td style="border:1px solid #000;padding:'+padding+';height:'+rowHeight+'px;">&nbsp;</td>';
+  html += '</tr></tfoot></table>';
+
+  /* ===== NEW BOTTOM SECTION MATCHING IMAGE ===== */
+  html += '<div style="margin-top:6px;font-size:'+(baseFont+1)+'px;">';
+  
+  // Row: एकूण रक्कम
+  html += '<div style="display:flex;align-items:center;margin-bottom:4px;">';
+  html += '<div style="flex:1;text-align:right;padding-right:8px;"><b>एकूण रक्कम</b></div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:80px;text-align:center;font-weight:700;">' + toMarathiNum(Math.round(grand)) + '</div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:30px;text-align:center;border-left:none;">००</div>';
+  html += '</div>';
+  
+  // Row: वजा (1) प्रवासभत्ता अग्रिम
+  html += '<div style="display:flex;align-items:center;margin-bottom:2px;">';
+  html += '<div style="flex:1;padding-left:20px;">वजा &nbsp; (१) प्रवासभत्ता अग्रिम</div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:80px;text-align:center;">----</div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:30px;text-align:center;border-left:none;">--</div>';
+  html += '</div>';
+  
+  // Row: वजा (2) स्थायी प्रवासभत्ता / वाहन भत्ता
+  html += '<div style="display:flex;align-items:center;margin-bottom:4px;">';
+  html += '<div style="flex:1;padding-left:20px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (२) स्थायी प्रवासभत्ता / वाहन भत्ता</div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:80px;text-align:center;">----</div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:30px;text-align:center;border-left:none;">--</div>';
+  html += '</div>';
+  
+  // Row: निव्वळ देय रक्कम
+  html += '<div style="display:flex;align-items:center;margin-bottom:6px;">';
+  html += '<div style="flex:1;text-align:right;padding-right:8px;"><b>निव्वळ देय रक्कम रुपये</b></div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:80px;text-align:center;font-weight:700;">' + toMarathiNum(Math.round(grand)) + '</div>';
+  html += '<div style="border:1px solid #000;padding:2px 8px;min-width:30px;text-align:center;border-left:none;">००</div>';
+  html += '</div>';
+
+  // Bottom summary box with words and right-side details
+  html += '<div style="border-top:1px solid #000;margin-top:4px;padding-top:6px;display:flex;justify-content:space-between;align-items:flex-start;">';
+  html += '<div style="font-size:'+(baseFont+1)+'px;"><b>रु.</b> &nbsp; <b>' + toMarathiNum(Math.round(grand)) + '.००</b> &nbsp;&nbsp; <span>(' + numberToMarathiWords(Math.round(grand)) + ')</span></div>';
+  html += '<div style="font-size:'+baseFont+'px;text-align:left;line-height:1.6;">';
+  html += '१) प्रमाणक क्रमांक व दि.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;__________ पासून __________ पर्यंत<br>';
+  html += '२) __________ पासून __________ पर्यंत<br>';
+  html += '&nbsp;&nbsp;&nbsp;&nbsp;दिवस &nbsp; दरमहा रु. &nbsp; प्रमाणे.';
+  html += '</div>';
+  html += '</div>';
+  
+  html += '</div>';
+  /* ===== END NEW BOTTOM SECTION ===== */
+
+  html += '<div style="text-align:right;margin-top:20px;font-size:'+(baseFont+1)+'px;">सही<br><br><b>' + officer + '</b><br>' + desig + '</div>';
+  html += '</div>';
+  return html;
+}
+
+function updateAll(){
+  detectMonth();
+
+  var d = document.getElementById('diaryContainer');
+  if (d) d.innerHTML = renderDiaryEditable();
+
+  var o1 = document.getElementById('outer1Container');
+  if (o1) o1.innerHTML = renderOuter1();
+
+  var o2 = document.getElementById('outer2Container');
+  if (o2) o2.innerHTML = renderOuter2();
+
+  var i1 = document.getElementById('inner1Container');
+  if (i1) i1.innerHTML = renderInner1();
+
+  var i2 = document.getElementById('inner2Container');
+  if (i2) i2.innerHTML = renderInner2();
+
+  var p = document.getElementById('printContainer');
+  if (p) {
+    p.innerHTML =
+      '<div id="printDiarySection" style="page-break-after:always;">' + renderDiaryPage() + '</div>' +
+      '<div id="printOuter1Section" style="page-break-after:always;">' + renderOuter1() + '</div>' +
+      '<div id="printOuter2Section" style="page-break-after:always;">' + renderOuter2() + '</div>' +
+      '<div id="printInner1Section" style="page-break-after:always;">' + renderInner1() + '</div>' +
+      '<div id="printInner2Section">' + renderInner2() + '</div>';
+  }
+}
+
+function printSection(section){
+  var ids = { diary:'printDiarySection', outer1:'printOuter1Section', outer2:'printOuter2Section', inner1:'printInner1Section', inner2:'printInner2Section' };
+  for(var k in ids){
+    var el = document.getElementById(ids[k]);
+    if(el) el.style.display = (section === k || section === 'all') ? 'block' : 'none';
+  }
+  window.print();
+  setTimeout(function(){
+    for(var k in ids){
+      var el = document.getElementById(ids[k]);
+      if(el) el.style.display = 'block';
+    }
+  }, 500);
+}
+
+function downloadExcel(type){
+  var wb = XLSX.utils.book_new();
+  if(type === 'diary' || type === 'all'){
+    var s1 = [
+      ['', '', '', '', 'मासिक दैनंदिनी', '', '', ''],
+      [getVal('officerName') + ', ' + getVal('designation') + ' ' + getVal('officeName'), '', '', '', '', '', '', ''],
+      ['मुख्यालय-' + getVal('headquarters'), '', '', '', '', '', '', 'माहे- ' + getVal('month')],
+      ['दिनांक', 'वेळ पासून', 'वेळ पर्यंत', 'कोठून', 'कोठे', 'गाडी क्रमांक', 'कि. मी.', 'कामाचा तपशिल']
+    ];
+    diaryData.forEach(function(r){
+      s1.push([r.date ? toMarathiDate(r.date) : '', r.from ? toMarathiTime(r.from) : '', r.to ? toMarathiTime(r.to) : '', r.fromPlace || '', r.toPlace || '', r.vehicleType ? vehicleLabel(r.vehicleType) : '', r.km ? toMarathiNum(r.km) : '', r.work || '']);
+    });
+    var ws1 = XLSX.utils.aoa_to_sheet(s1);
+    ws1['!cols'] = [{wch:14},{wch:12},{wch:12},{wch:10},{wch:28},{wch:12},{wch:8},{wch:24}];
+    XLSX.utils.book_append_sheet(wb, ws1, 'मासिक दैनंदिनी');
+  }
+  if(type === 'inner' || type === 'all'){
+    var t2 = computeTotals();
+    var s3 = [
+      ['वेतन / स्थायी प्रवासभत्ता / वाहन भत्ता', '', '', '', 'मूळ वेतन रु.', num('basicPay')],
+      [],
+      ['१४','१५','१६','१७','१८','१९','२०','२१']
+    ];
+    t2.rows.forEach(function(r){
+      s3.push([r.col14, Math.round(r.col15), r.isFullDay ? 'पूर्ण दिवस' : '१/२ दिवस', 0, 0, Math.round(r.col19), r.work, '']);
+    });
+    var ws3 = XLSX.utils.aoa_to_sheet(s3);
+    XLSX.utils.book_append_sheet(wb, ws3, 'Inner (TA Bill)');
+  }
+  var fileName = 'TA_Bill_' + getVal('month').replace(/\s/g,'_');
+  if(type === 'diary') fileName = 'Masik_Dainandini_' + getVal('month').replace(/\s/g,'_');
+  if(type === 'all') fileName = 'TA_Bill_Complete_' + getVal('month').replace(/\s/g,'_');
+  XLSX.writeFile(wb, fileName + '.xlsx');
+}
+
+function switchTab(idx){
+  var panes = document.querySelectorAll('.tab-pane');
+  var tabs = document.querySelectorAll('.tab');
+  panes.forEach(function(p, i){ p.style.display = (i === idx) ? 'block' : 'none'; });
+  tabs.forEach(function(t, i){
+    if(i === idx){ t.style.background = '#2a5298'; t.style.color = '#fff'; }
+    else { t.style.background = '#d0d7e2'; t.style.color = '#222'; }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', function(){ loadSampleData(); });
+</script>
+
+</body>
+</html>
+}
